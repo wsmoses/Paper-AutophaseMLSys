@@ -1,0 +1,43 @@
+%\section{Methodology} % 1 page 
+\section{Problem Formulation}
+\label{sec:DRLA}
+\subsection{The RL Environment Definition}
+\label{subsubsec:conf1}
+Assume the optimal number of passes to apply is $N$ and there are $K$ transform passes to select from in total, our search space $\mathcal{S}$ for the phase-ordering problem is $[0, K^N)$. 
+Given $M$ program features and the history of already applied passes, the goal of deep RL is to learn the next best optimization pass $a$ to apply that minimizes the long term cycle count of the generated hardware circuit. 
+Note that the optimization state $s$ is partially observable in this case as the $M$ program features cannot fully capture all the properties of a program.  
+
+\textbf{Action Space} -- 
+we define our action space $\mathcal{A}$ as
+$\{a \in \mathbb{Z}: a \in [0, K)\}$ where $K$ is the total number of transform passes.% defined in Table \ref{tab:passes}. 
+
+\textbf{Observation Space} -- 
+two types of input features were considered in our evaluation: 
+\textbf{\textcircled{1} program features}  $\mathbf{o_f} \in 
+\mathbb{Z}^M$ listed in Table \ref{tab:tab1} and 
+\textbf{\textcircled{2} action history} which is a histogram of previously applied passes $\mathbf{o_a} \in \mathbb{Z}^K$. After each RL step where the pass $i$ is applied, we call the feature extractor in our environment to return new $\mathbf{o_f}$, and update the action histogram element $o_{a_i}$ to $o_{a_i} + 1$.  
+
+\textbf{Reward} -- 
+the cycle count of the generated circuit is reported by the clock-cycle profiler at each RL iteration. 
+Our reward is defined as $R = c_{prev} - c_{cur}$, where $c_{prev}$ and $c_{cur}$ represent the previous and the current cycle count of the generated circuit respectively. It is possible to define a different reward for different objectives. For example, the reward could be defined as the negative of the area and thus the RL agent will optimize for the area. It is also possible to co-optimize multiple objectives (e.g., area, execution time, power, etc.) by defining a combination of different objectives.
+
+\subsection{Applying Multiple Passes per Action}
+\label{subsubsec:conf2}
+An alternative to the action formulation above is to evaluate a complete sequence of passes with length $N$ instead of a single action $a$ at each RL iteration. Upon the start of training a new episode, the RL agent resets all pass indices $\mathbf{p} \in \mathbb{Z}^N$ to the index value $\frac{K}{2}$. For pass ${p_i}$ at index $i$, 
+the next action to take is either to change to a new pass or not. 
+By allowing positive and negative index update for each $p$, we reduced the total steps required to traverse all possible pass indices.  
+The sub-action space $a_i$ for each pass is thus defined as $[-1, 0, 1]$.
+The total action space $\mathcal{A}$ is defined as $[-1, 0, 1]^N$.
+At each step, the RL agent predicts the updates $[a_1, a_2, ..., a_N]$ to N passes, and the current optimization sequence $[p_1, p_2, ..., p_N]$ is updated to $[p_1+a_1, p_2+a_2, ..., p_N+a_N]$.  %The observation space and reward of this formulation remain the same as in \mbox{Configuration 1}~\ref{subsubsec:conf1}.  
+
+
+\subsection{Normalization Techniques}
+\label{subsection:norm}
+In order for the trained RL agent to work on new programs, we need to properly normalize the program features and rewards so they represent a meaningful state among different programs. 
+In this work, we experiment with two techniques: 
+\textcircled{1} taking the logarithm of program features or rewards and,   
+\textcircled{2} normalizing to a parameter from the original input program that roughly depicts the problem size. 
+For technique \textcircled{1}, note that taking the logarithm of the program features not only reduces their magnitude, it also correlates them in a different manner in the neural network. Since, $w_1\log(o_{f_1}) + w_2\log(o_{f_2}) = log(o_{f_1}^{w_1}o_{f_2}^{w_2})$,
+the neural network is learning to correlate the products of features instead of a linear combination of them.  
+For technique \textcircled{2}, we normalize the program features to the total number of instructions in the input program ($\mathbf{o_{f\_norm}} =\frac{\mathbf{o_{f}}}{o_{f_{51}}}$), which is feature \#51 in Table \ref{tab:tab1}.
+%We normalize the reward to the the cycle count of the original input program $c_{orig}$, so $R_{norm}=\frac{c_{prev}-c_{cur}}{c_{orig}}$. 

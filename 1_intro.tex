@@ -1,0 +1,149 @@
+\section{Introduction}
+High-Level Synthesis (HLS) automates the process of creating digital hardware circuits from algorithms written in high-level languages.  
+Modern HLS tools~\cite{xilinx_vivado_hls,intel_hls,canis2013legup} use the same front-end as the traditional software compilers.  
+They rely on traditional software compiler techniques to optimize the input program's intermediate representation (IR) and produce circuits in the form of RTL code. % from the IRs. 
+Thus, the quality of compiler front-end optimizations directly impacts the performance of HLS-generated circuit. 
+
+Program optimization is a notoriously difficult task. 
+A program must be just in "the right form" for a compiler to recognize the optimization opportunities. This is a task a programmer might be able to perform easily, but is often difficult for a compiler.
+%To add to this complexity, often the optimization is hardware-dependent.
+Despite a decade of research on developing sophisticated optimization algorithms, 
+there is still a performance gap between the HLS generated code and the hand-optimized one produced by experts. %, though it incurs huge costs both in terms of time and human capital. 
+% The goal of this paper is to work towards an intelligent HLS frontend that automatically decides which  optimizations and in which order to apply. 
+%The main task of a compiler is to take a program written in a high level language and produce optimized executable code to run on specific platforms. This is a notoriously difficult task. 
+%To guarantee they produce correct code, compilers make conservative decisions, which can lead to missing optimizations. \JENNY{This is not the problem we try to solve as we didn't modify the passes to be more intrusive}
+%Thus, despite decades of research, an expert programmer can still produce code that outperforms a compiler. Unfortunately, manually optimizing code incurs huge costs both in terms of time and human capital. 
+
+%Compilers have been successful in accomplishing two distinct goals: they have automated many expert-programmer techniques and have allowed for programmers to write high-level and algorithmically elegant programs. However, the benefits that compilers provide do not come without cost. Programs must be in just the right form for an optimization pass to recognize it -- a task which a programmer might be able to easily do, but is often difficult for the compiler. Rather than risk producing incorrect code, the compiler must act conservatively, leading to many missed optimizations. Thus, a program manually optimized by a programmer may often outperform a program optimized by a compiler, though at a significant cost both in time and intellectual capital.
+
+In this paper, we build off the LLVM compiler~\cite{lattner2004llvm}. However, our techniques, can be broadly applicable to any compiler that uses a series of optimization passes.
+In this case, the optimization of an HLS program consists of applying a sequence of analysis and optimization phases, where each phase in this sequence consumes the output of the previous phase, and generates a modified version of the program for the next phase. Unfortunately, these phases are not commutative which makes the order in which these phases are applied critical to the performance of the output. 
+%, each of them A compiler is composed of analyses and optimizations which are simply transformations that modify programs. Unfortunately, since optimizations do not generally commute, it is crucial to apply optimizations in the proper order. 
+
+Consider the program in Figure~\ref{fig:norm1}, which normalizes a vector. Without any optimizations, the \verb|norm| function will take $\Theta(n^2)$ to normalize a vector. However, a smart compiler will implement the \textit{loop invariant code motion (LICM)}~\cite{Muchnick97} optimization, which allows it to move the call to \verb|mag| above the loop, resulting in the code on the left column in Figure~\ref{fig:norm2}. This optimization brings the runtime down to $\Theta(n)$---a big speedup improvement. Another optimization the compiler could perform is \textit{(function) inlining}~\cite{Muchnick97}. With inlining, a call to a function is simply replaced with the body of the function, reducing the overhead of the function call. Applying inlining to the code 
+%in Figure \ref{fig:norm2}, 
+will result in the code in the right column of Figure~\ref{fig:norm2}.
+\begin{figure}[H]
+     \centering
+         \centering
+\begin{minted}[fontsize=\footnotesize]{c}
+__attribute__((const))
+double mag(int n, const double *A) {
+    double sum = 0;
+    for(int i=0; i<n; i++){
+        sum += A[i] * A[i];
+    }
+    return sqrt(sum);
+}
+void norm(int n, double *restrict out,
+          const double *restrict in) {
+    for(int i=0; i<n; i++) {
+        out[i] = in[i] / mag(n, in);
+    }
+}
+\end{minted}
+\caption{A simple program to normalize a vector. }
+    \label{fig:norm1}
+\end{figure}
+\begin{figure*}[h]
+     \centering
+     \begin{subfigure}[b]{0.46\textwidth}
+         \centering
+\begin{minted}[fontsize=\footnotesize]{c}
+void norm(int n, double *restrict out,
+          const double *restrict in) {
+    double precompute = mag(n, in);
+    for(int i=0; i<n; i++) {
+        out[i] = in[i] / precompute;
+    }
+}
+\end{minted}
+    %\label{fig:norm2}
+\end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.46\textwidth}
+         \centering
+\begin{minted}[fontsize=\footnotesize]{c}
+void norm(int n, double *restrict out,
+          const double *restrict in) {
+    double precompute, sum = 0;
+    for(int i=0; i<n; i++){
+        sum += A[i] * A[i];
+    }
+    precompute = sqrt(sum);
+    for(int i=0; i<n; i++) {
+        out[i] = in[i] / precompute;
+    }
+}
+\end{minted}
+     \end{subfigure}
+     \caption{Progressively applying LICM (left) then inlining (right) to the code in Figure~\ref{fig:norm1}.}
+    \label{fig:norm2}
+\end{figure*}
+\begin{figure*}[!h]
+     \centering
+     \begin{subfigure}[b]{0.46\textwidth}
+         \centering
+\begin{minted}[fontsize=\footnotesize]{c}
+void norm(int n, double *restrict out,
+          const double *restrict in) {
+    for(int i=0; i<n; i++) {
+        double sum = 0;
+        for(int j=0; j<n; j++){
+            sum += A[j] * A[j];
+        }
+        out[i] = in[i] / sqrt(sum);
+    }
+}
+\end{minted}
+    %\label{fig:norm4}
+\end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.46\textwidth}
+         \centering
+\begin{minted}[fontsize=\footnotesize]{c}
+void norm(int n, double *restrict out,
+          const double *restrict in) {
+    double sum;
+    for(int i=0; i<n; i++) {
+        sum = 0;
+        for(int j=0; j<n; j++){
+            sum += A[j] * A[j];
+        }
+        out[i] = in[i] / sqrt(sum);
+    }
+}
+\end{minted}
+     \end{subfigure}
+          \vspace{-0.3cm}
+     \caption{Progressively applying inlining (left) then LICM (right) to the code in Figure~\ref{fig:norm1}.}
+     \label{fig:norm3}
+     %\vspace{-0.5cm}
+\end{figure*}
+
+Now, consider applying these optimization passes in the opposite order: first inlining then LICM. After inlining, we get the code on the left of Figure~\ref{fig:norm3}. Once again we get a modest speedup, having eliminated $n$ function calls, though our runtime is still $\Theta(n^2)$. If the compiler afterwards attempted to apply LICM, we would find the code on the right of Figure~\ref{fig:norm3}. LICM was able to successfully move the allocation of sum outside the loop. However, it was unable to move the instruction setting \verb|sum=0| outside the loop, as doing so would mean that all iterations excluding the first one would end up with a garbage value for sum. Thus, the internal loop will not be moved out.
+
+As this simple example illustrates, the order in which the optimization phases are applied can be the difference between the program running in $\Theta(n^2)$ versus $\Theta(n)$. It is thus crucial to determine the optimal phase ordering to maximize the circuit speeds. Unfortunately, not only is this a difficult task, but the optimal phase ordering may vary from program to program. Furthermore, it turns out that finding the optimal sequence of optimization phases is an NP-hard problem, and exhaustively evaluating all possible sequences is infeasible in practice. In this work, for example, the search space extends to more than $2^{247}$ phase orderings.
+
+The goal of this paper is to provide a mechanism for automatically determining good phase orderings for HLS programs to optimize for the circuit speed. To this end, we aim to leverage recent advancements in deep reinforcement learning (RL)~\cite{sutton1998,hajali2019deep} to address the phase ordering problem. 
+%targeting hardware designs.
+%Recent advancements in deep reinforcement learning (RL)~\cite{sutton1998} offer opportunities to address the phase ordering challenge. 
+With RL, a software agent continuously interacts with the environment by taking actions. Each action can change the state of the environment and generate a "reward". The goal of RL is to learn a policy---that is, a mapping between the observed states of the environment and a set of actions---to maximize the cumulative reward. An RL algorithm that uses a deep neural network to approximate the policy is referred to as a deep RL algorithm. In our case, the observation from the environment could be the program and/or the optimization passes applied so far. The action is the optimization pass to apply next, and the reward is the improvement in the circuit performance after applying this pass. 
+%Generally, deep RL algorithms interact with the environment and are rewarded based on their actions. 
+%Based on these rewards and environment observations, statistical machine learning is applied to estimate the long-term benefit of the actions and optimize these actions accordingly. 
+%In this work, we explore the benefits of applying deep RL algorithms to improve the quality of results (QoR) of HLS.
+The particular framing of the problem as an RL problem has a significant impact on the solution's effectiveness. Significant challenges exist in understanding how to formulate the phase ordering optimization problem in an RL framework. 
+
+In this paper, we consider three approaches to represent the environment's state. The first approach is to directly use salient features from the program. The second approach is to derive the features from the sequence of optimizations we applied while ignoring the program's features. The third approach combines the first two approaches. We evaluate these approaches by implementing a framework that takes a group of programs as input and quickly finds a phase ordering that competes with state-of-the-art solutions.  %Furthermore, an agent trained on random programs improves the test random programs by 5\% and 3\% on the nine real benchmarks. 
+Our main contributions are:
+%\vspace{-0.2cm}
+\begin{itemize}
+\itemsep 0em 
+
+    %\item Modified the LLVM compiler to extract 
+    %program features that describe the program structure.  %describe the number of different operations from a specific HLS program.
+    \item Extend a previous work~\cite{huang2019autophase} and leverage deep RL to address the phase-ordering problem.
+    \item An importance analysis on the features using random forests to significantly reduce the state and action spaces.
+    \item AutoPhase: a framework that integrates the current HLS compiler infrastructure with the deep RL algorithms.
+    \item We show that AutoPhase gets a 28\% improvement over -O3 for nine real benchmarks.  Unlike all state-of-the-art approaches, deep RL demonstrates the potential to generalize to thousands of different programs after training on a hundred programs.
+\end{itemize}

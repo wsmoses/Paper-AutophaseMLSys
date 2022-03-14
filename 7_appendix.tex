@@ -1,0 +1,102 @@
+\appendices
+\begin{table*}[!t]
+\centering
+\caption{Program features: number of different operations.}
+\begin{tabular}{|c|c|}
+\hline
+Number of BB where total args for phi nodes \textgreater 5 & Number of And insts \\ \hline
+Number of BB where total args for phi nodes is {[}1,5{]} & Number of BB's with instructions between {[}15,500{]} \\ \hline
+Number of BB's with 1 predecessor & Number of BB's with less than 15 instructions \\ \hline
+Number of BB's with 1 predecessor and 1 successor & Number of BitCast insts \\ \hline
+Number of BB's with 1 predecessor and 2 successors & Number of Br insts \\ \hline
+Number of BB's with 1 successor & Number of Call insts \\ \hline
+Number of BB's with 2 predecessors & Number of GetElementPtr insts \\ \hline
+Number of BB's with 2 predecessors and 1 successor & Number of ICmp insts \\ \hline
+Number of BB's with 2 predecessors and successors & Number of LShr insts \\ \hline
+Number of BB's with 2 successors & Number of Load insts \\ \hline
+Number of BB's with \textgreater{}2 predecessors & Number of Mul insts \\ \hline
+Number of BB's with Phi node \# in range (0,3{]} & Number of Or insts \\ \hline
+Number of BB's with more than 3 Phi nodes & Number of PHI insts \\ \hline
+Number of BB's with no Phi nodes & Number of Ret insts \\ \hline
+Number of Phi-nodes at beginning of BB & Number of SExt insts \\ \hline
+Number of branches & Number of Select insts \\ \hline
+Number of calls that return an int & Number of Shl insts \\ \hline
+Number of critical edges & Number of Store insts \\ \hline
+Number of edges & Number of Sub insts \\ \hline
+Number of occurrences of 32-bit integer constants & Number of Trunc insts \\ \hline
+Number of occurrences of 64-bit integer constants & Number of Xor insts \\ \hline
+Number of occurrences of constant 0 & Number of ZExt insts \\ \hline
+Number of occurrences of constant 1 & Number of basic blocks \\ \hline
+Number of unconditional branches & Number of instructions (of all types) \\ \hline
+Number of Binary operations with a constant operand & Number of memory instructions \\ \hline
+Number of AShr insts & Number of non-external functions \\ \hline
+Number of Add insts & Total arguments to Phi nodes \\ \hline
+Number of Alloca insts & Number of Unary operations \\ \hline
+\end{tabular}
+\label{tab:tab1}
+\end{table*}
+
+\begin{table*}[!t]
+\caption{The cycles for searching the best three passes using the different search algorithms for different tasks.}
+\label{tab:3pass}
+\hskip3.3cm\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+\textbf{\textbf{}}  & \multicolumn{6}{c|}{\textbf{Cycles}}                                                                                                                                                                \\ \hline
+\textbf{Task}       & \textbf{RL}        & \textbf{-O3}      & \textbf{random}    & \textbf{Greedy}     & \textbf{Genetic} & \textbf{No Opt.} \\ \hline
+\textbf{aes}        & \textcolor{blue}{9003}   & 9181                               & \textcolor{blue}{9003}   & 11765                                & \textcolor{blue}{9003}                              & 11913   \\ \hline
+\textbf{adpcm}      & \textcolor{blue}{13707}  & 16244                              & 15837                               & Error                                   & \textcolor{blue}{13707}                               & 40430   \\ \hline
+\textbf{bf}         & \textcolor{blue}{180050} & 187327                             & 185250                              & 185269                               & \textcolor{blue}{180050}                              & 197395  \\ \hline
+\textbf{jpeg}       & 1296330                             & 1313851                            & 1318382                             & \textcolor{blue}{1239409} & 1296330                              & 1474020 \\ \hline
+\textbf{mpeg2}      & 8356                                & \textcolor{blue}{8260}  & 8356                                & 8469                                 & 8356                              & 10485   \\ \hline
+\textbf{sha driver} & \textcolor{blue}{209154} & 226234                             & \textcolor{blue}{209154} & 222024                               & \textcolor{blue}{209154}                               & 296387  \\ \hline
+\textbf{gsm}        & \textcolor{blue}{6168}   & 6491                               & 6172                                & 6869                                 & \textcolor{blue}{6168}                               & 7810    \\ \hline
+\textbf{fir}        & 1850                                & \textcolor{blue}{1768}  & 1850                                & 2598                                 & 1850                              & 2172    \\ \hline
+\textbf{dhry}       & 7767                                & \textcolor{blue}{5912}  & 8793                                & 8793                                 & 7767                              & 9194    \\ \hline
+\textbf{qsort}      & \textcolor{blue}{49948}  & \textcolor{blue}{49948} & 53733                               & 54347                                & \textcolor{blue}{49948}                              & 56092   \\ \hline
+\textbf{mm}         & \textcolor{blue}{33244}  & \textcolor{blue}{33244} & \textcolor{blue}{33244}  & \textcolor{blue}{33244}   & \textcolor{blue}{33244}                              & 42085   \\ \hline
+\textbf{dfadd}      & \textcolor{blue}{726}    & \textcolor{blue}{726}   & \textcolor{blue}{726}    & \textcolor{blue}{726}     & \textcolor{blue}{726}                              & 773     \\ \hline
+\end{tabular}
+\end{table*}
+
+\begin{table*}[]
+\caption{The cycles for searching the best $12$ passes using the different search algorithms for different tasks.}
+\label{tab:12pass}
+\hskip0.3cm\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|}
+\hline
+\textbf{}                            & \multicolumn{9}{c|}{\textbf{Cycles}}                             
+\\ \hline
+\textbf{Task}       & \textbf{DQN 12-steps} & \textbf{DQN 4-steps} & \textbf{DQN 1-step} & \textbf{PG}   & \textbf{-O3}      & \textbf{random}   & \textbf{Greedy}    & \textbf{Genetic}   & \textbf{No Opt.} \\ \hline
+\textbf{aes}        & \textcolor{blue}{9003}      & \textcolor{blue}{9003}     & 11693                                 & \textcolor{blue}{9003}  & 9181                               & \textcolor{blue}{9003}  & \textcolor{blue}{9003}   & \textcolor{blue}{9003}      & 11913                             \\ \hline
+\textbf{adpcm}      & \textcolor{blue}{8501}      & 13707                                 & 36537                                 & 13657                           & 16244                              & 14463                              & 13607                               & \textcolor{blue}{8501}   & 40430                             \\ \hline
+\textbf{bf}         & 180054                                 & \textcolor{blue}{180050}   & 180069                                & \textcolor{blue}{180050}                           & 187327                             & 180054                             & \textcolor{blue}{180050} & 180054                              & 197395                            \\ \hline
+\textbf{jpeg}       & 1305864                                & 1305583  & \textcolor{blue}{1295373}  & 1296330                           & 1313851                            & 1324660                            & 1305583                             & 1305775                             & 1474020                           \\ \hline
+\textbf{mpeg2}      & 8356                                   & 8356                                  & 8392                                  & 8280                           & \textcolor{blue}{8260}  & 8280                               & 8274                                & 8280                                & 10485                             \\ \hline
+\textbf{sha driver} & \textcolor{blue}{209154}    & \textcolor{blue}{209154}   & 222024                                & \textcolor{blue}{209154}                          & 226234                             & 209168                             & \textcolor{blue}{209154} & \textcolor{blue}{209154} & 269387                            \\ \hline
+\textbf{gsm}        & \textcolor{blue}{5849}      & \textcolor{blue}{5849}     & 6696                                  & 6168                           & 6491                               & 6168                               & \textcolor{blue}{5849}   & \textcolor{blue}{5849}   & 7810                              \\ \hline
+\textbf{fir}        & 1850                                   & 1850                                  & 1850                                  & 1850                           & \textcolor{blue}{1768}  & 1850                               & 1850                                & 1850                                & 2172                              \\ \hline
+\textbf{dhry}       & 6162                                   & 7955                                  & 7767                                  & 7767                           & \textcolor{blue}{5912}  & 5974                               & 7767                                & 5974                                & 9194                              \\ \hline
+\textbf{qsort}      & \textcolor{blue}{49948}     & \textcolor{blue}{49948}    & 49889                                 & \textcolor{blue}{49948}                           & \textcolor{blue}{49948} & 49889                              & 49889                               & \textcolor{blue}{49948}  & 56092                             \\ \hline
+\textbf{mm}         & \textcolor{blue}{33244}     & \textcolor{blue}{33244}    & 33244                                 & \textcolor{blue}{33244}                           & \textcolor{blue}{33244} & \textcolor{blue}{33244} & \textcolor{blue}{33244}  & \textcolor{blue}{33244}  & 42085                             \\ \hline
+\textbf{dfadd}      & \textcolor{blue}{726}       & \textcolor{blue}{726}      & 726                                   & \textcolor{blue}{726}                           & \textcolor{blue}{726}   & \textcolor{blue}{726}   & \textcolor{blue}{726}    & \textcolor{blue}{726}    & 773                               \\ \hline
+\end{tabular}
+\end{table*}
+
+% \begin{table}[]
+% \begin{tabular}{|c|c|c|c|c|c|c|}
+% \hline
+% \textbf{\textbf{}}  & \multicolumn{6}{c|}{\textbf{Cycles}}                                                                                                                                                                                                                                   \\ \hline
+% \textbf{Task}       & \textbf{RL}                 & \textbf{-O3}              & \textbf{random}           & \textbf{Greedy}            & \textbf{Genetic}           & \textbf{No Opt.} \\ \hline
+% \textbf{aes}        & \textcolor{blue}{9003}    & 9181                                       & \textcolor{blue}{9003}  & \textcolor{blue}{9003}   & \textbf{9003}              & 11913                             \\ \hline
+% \textbf{adpcm}      & \textcolor{blue}{8501}    & 16244                                      & 14463                                      & 13607                                       & \textcolor{blue}{8501}   & 40430                             \\ \hline
+% \textbf{bf}         & \textcolor{blue}{180050}  & 187327                                     & 180054                                     & \textcolor{blue}{180050} & 180054                                      & 197395                            \\ \hline
+% \textbf{jpeg}       & \textcolor{blue}{1295373} & 1313851                                    & 1324660                                    & 1305583                                     & 1305775                                     & 1474020                           \\ \hline
+% \textbf{mpeg2}      & 8356                                         & \textcolor{blue}{8260}  & 8280                                       & 8274                                        & 8280                                        & 10485                             \\ \hline
+% \textbf{sha driver} & \textcolor{blue}{209154}  & 226234                                     & 209168                                     & \textcolor{blue}{209154} & \textcolor{blue}{209154} & 269387                            \\ \hline
+% \textbf{gsm}        & \textcolor{blue}{5849}    & 6491                                       & 6168                                       & \textcolor{blue}{5849}   & \textcolor{blue}{5849}   & 7810                              \\ \hline
+% \textbf{fir}        & 1850                                         & \textcolor{blue}{1768}  & 1850                                       & 1850                                        & 1850                                        & 2172                              \\ \hline
+% \textbf{dhry}       & 6162                                         & \textcolor{blue}{5912}  & 5974                                       & 7767                                        & 5974                                        & 9194                              \\ \hline
+% \textbf{qsort}      & \textcolor{blue}{49948}   & \textcolor{blue}{49948} & 49889                                      & 49889                                       & \textcolor{blue}{49948}  & 56092                             \\ \hline
+% \textbf{mm}         & \textcolor{blue}{33244}   & \textcolor{blue}{33244} & \textcolor{blue}{33244} & \textcolor{blue}{33244}  & \textcolor{blue}{33244}  & 42085                             \\ \hline
+% \textbf{dfadd}      & \textcolor{blue}{726}     & \textcolor{blue}{726}   & \textcolor{blue}{726}   & \textcolor{blue}{726}    & \textcolor{blue}{726}    & 773                               \\ \hline
+% \end{tabular}
+% \end{table}

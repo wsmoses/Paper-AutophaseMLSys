@@ -1,0 +1,21 @@
+\section{Conclusions} % 0.25 page 
+\label{sec:conc}
+\vspace{-0.1cm}
+% In this work, we demonstrated a novel deep reinforcement learning based approach to robustly and intelligently improve the performance of HLS designs, by optimizing the compiler phase ordering. 
+% These performance improvements require only a few minutes of training---one to two orders of magnitude faster than state-of-the-art approaches. 
+% \JENNY{Add some numbers, how much better?}
+% The techniques can be applied to software programs. 
+% %The flexibility of our framework enables it to support optimizing any compiled program without being restricted to HLS. 
+% We envision using such a framework to optimize a wide range of programs. 
+
+In this paper, we propose an approach based on deep RL to improve the performance of HLS designs by optimizing the order in which the compiler applies optimization phases. We use random forests to analyze the relationship between program features and optimization passes. We then leverage this relationship to reduce the search space by identifying the most likely optimization phases to improve the performance, given the program features. Our RL based approach achieves 28\% better performance than compiling with the -O3 flag after training for a few minutes, and a 24\% improvement after training for less than a minute. Furthermore, we show that unlike prior work, our solution shows potential to generalize to a variety of programs.  
+While in this paper we have applied deep RL to HLS, we believe that the same approach can be successfully applied to software compilation and optimization. Going forward, we envision using deep RL techniques to optimize a wide range of programs and systems.
+
+%In this work, we show the potential of using RL to achieve a better ordering of compiler optimization passes. We built a framework that takes multiple programs and intelligently and robustly finds an optimal sequence of passes to apply. 
+%We also show that using the program features solely is insufficient for RL to learn, due to limited observations, the necessity to apply multiple passes sometimes to affect such features, and inability to operate on multiple programs simultaneously.
+%We propose to use program features or the applied passes as observations. 
+%Significant performance and runtime benefits are achieved by using the later approach.
+%allowing a novel approach based on RL to tackle the compiler phase ordering challenge and opening new horizons to explore in RL where actions could be used as observations. %More work should be done to better represent the programs.
+
+\section*{Acknowledgement}
+This research is supported in part by NSF CISE Expeditions Award CCF-1730628, the Defense Advanced Research Projects Agency (DARPA) through the Circuit Realization at Faster Timescales (CRAFT) Program under Grant HR0011-16-C0052, the Computing On Network Infrastructure for Pervasive Perception, Cognition and Action (CONIX) Research Center, NSF Grant 1533644, LANL Grant 531711, and DOE Grant DE-SC0019323, and gifts from Alibaba, Amazon Web Services, Ant Financial, CapitalOne, Ericsson, Facebook, Futurewei, Google, IBM, Intel, Microsoft, Nvidia, Scotiabank, Splunk, VMware, and ADEPT Lab industrial sponsors and affiliates. The views and opinions of authors expressed herein do not necessarily state or reflect those of the United States Government or any agency thereof.

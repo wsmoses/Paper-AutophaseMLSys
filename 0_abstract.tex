@@ -1,0 +1,21 @@
+\begin{abstract}
+The performance of the code a compiler generates depends on the order in which it applies the optimization passes.  
+Choosing a good order--often referred to as the {\em phase-ordering} problem, is an NP-hard problem. As a result, existing solutions rely on a variety of heuristics.
+In this paper, we evaluate a new technique to address the phase-ordering problem: deep reinforcement learning.
+To this end, we implement AutoPhase\footnote[3]{}: a framework that takes a program and uses deep reinforcement learning to find a sequence of compilation passes that minimizes its execution time. 
+Without loss of generality, we construct this framework in the context of the LLVM compiler toolchain and target high-level synthesis programs. 
+We use random forests to quantify the correlation between the effectiveness of a given pass and the program's features. This helps us reduce the search space by avoiding phase orderings that are unlikely to improve the performance of a given program. 
+We compare the performance of AutoPhase to state-of-the-art algorithms that address the phase-ordering problem.
+In our evaluation, we show that AutoPhase improves circuit performance by 28\%
+when compared to using the -O3 compiler flag, and achieves competitive results compared to the state-of-the-art solutions, while requiring fewer samples.
+Furthermore, unlike existing state-of-the-art solutions, our deep reinforcement learning solution shows promising result in generalizing to real benchmarks and 12,874 different randomly generated programs, after training on a hundred randomly generated programs.
+
+% for less than ten minutes.
+
+%
+% Existing methods for solving the phase-ordering problem are based on trials on per-program basis. 
+% Our method uses RL to learn the heuristics from salient program features and can applied pre-model to new programs. 
+% We analyze the correlation between the features (applied passes, program features) and next action that optimizes overall rewards by training a random forest.  
+% We generate thousands of HLS-synthesizable random programs, train them and run inference/transfer learning on real HLS design. Results shows better than O3 performance on real benchmarks
+
+\end{abstract}

@@ -1,0 +1,98 @@
+\vspace{-0.3cm}
+\section{background} % 1.5 pages
+\label{sec:bg}
+\subsection{Compiler Phase-ordering}
+Compilers execute optimization passes to transform programs into more efficient forms to run on various hardware targets.
+Groups of optimizations are often packaged into ``optimization levels'' , such as -O0 and -O3, for ease. 
+%-O0 (no optimization), -O1 (some optimization) -O2 (more optimization), -O3 (most optimization)
+While these optimization levels offer a simple set of choices for developers, they are handpicked by the compiler-designers and often most benefit certain groups of benchmark programs. 
+The compiler community has attempted to address the issue by selecting a particular set of compiler optimizations on a per-program or per-target basis for software~\cite{triantafyllis2003compiler,almagor2004finding,pan2006fast, ansel2014opentuner}.
+
+Since the search space of phase-ordering is too large for an exhaustive search, many heuristics have been proposed to explore the space by using machine learning. 
+Huang~\textit{et al.} tried to address this challenge for HLS applications by using modified greedy algorithms~\cite{huang2013effect,huang2015effect}. It achieved 16\% improvement vs -O3 on the CHstone benchmarks~\cite{hara2008chstone}, which we used in this paper.  %to apply a new optimization to an existing sequence and keep the best one or three sequences at each 
+In~\cite{agakov2006using} both independent and Markov models were applied to automatically target an optimized search space for iterative methods to improve the search results.
+In~\cite{2003Stephenson}, genetic algorithms were used to tune heuristic priority functions for three compiler optimization passes. 
+Milepost GCC~\cite{fursin2011milepost} used machine learning to determine the set of passes to apply to a given program, based on a static analysis of its features. It achieved an 11\% execution time improvement over -O3, for the ARC reconfigurable processor on the MiBench program suite1.
+In~\cite{2012Kulkarni} the challenge was formulated as a Markov process and supervised learning was used to predict the next optimization, based on the current program state.
+OpenTuner~\cite{ansel2014opentuner} autotunes a program using an AUC-Bandit-meta-technique-directed ensemble selection of algorithms. Its current mechanism for selecting the compiler optimization passes does not consider the order or support repeated optimizations. 
+Wang \textit{et al.}~\cite{wang2018}, provided a survey for using machine learning in compiler optimization where they also described that using program features might be helpful. NeuroVectorizer~\cite{haj2019neurovectorizer,hajlearning} used deep RL for automatically tuning compiler pragmas such as vectorization and interleaving factors. NeuroVectorizer achieves 97\% of the oracle performance (brute-force search) on a wide range of benchmarks.
+
+\subsection{Reinforcement Learning Algorithms}
+Reinforcement learning (RL) is a machine learning approach in which an agent continually interacts with the environment~\cite{kaelbling1996reinforcement}. In particular, the agent observes the state of the environment, and based on this observation takes an action. The goal of the RL agent is then to compute a policy--a mapping between the environment states and actions--that maximizes a long term reward. 
+%by taking actions. These actions are generally the output of a policy that takes as an input a state/observation. The objective of RL is to find a policy that maximizes the reward an agent receives while interacting with the environment.
+
+RL can be viewed as a stochastic optimization solution for solving Markov Decision Processes (MDPs)~\cite{bellman1957}, when the MDP is not known. An MDP 
+%models the system with an agent that wants to optimize a given objective (such as the score in a game) by making a sequence of decisions. Given the current state, a decision is made, which leads to a new state. More formally, the Markov decision process 
+is defined by a tuple with four elements:
+${S,A,P(s,a),r(s,a)}$ where $S$ is the set of states of the environment, $A$ describes the set of actions or transitions between states, $s' {\raise.17ex\hbox{$\scriptstyle\mathtt{\sim}$}} P(s,a)$ describes the probability distribution of next states given the current state and action and $r(s,a):S \times A \rightarrow R$ is the reward of taking action $a$ in state $s$. Given an MDP, the goal of the agent is to gain the largest possible aggregate reward. The objective of an RL algorithm associated with an MDP is to find a decision policy $\pi^*(a|s):s\rightarrow A$ that achieves this goal for that MDP:
+ %, by mapping states to actions, that maximize the reward:
+\begin{multline}
+\label{eq:MDP}
+    \pi^* = \argmaxA_\pi \mathbb{E}_{\tau{\raise.05ex\hbox{$\scriptstyle\mathtt{\sim}$}}\pi(\tau)} \left[\sum_{t}^{}r(s_t,a_t) \right] = \\
+    \argmaxA_\pi \sum_{t=1}^{T}\mathbb{E}_{(s_t,a_t){\raise.05ex\hbox{$\scriptstyle\mathtt{\sim}$}}\pi(s_t,a_t)}\left[r(s_t,a_t)\right].
+\end{multline}
+
+Deep RL leverages a neural network to learn the policy (and sometimes the reward function).
+%Recently, Deep RL has achieved impressive results, such as learning to play 49 Atari games with human-level capabilities~\cite{mnih2015}, and defeating the Go world champion~\cite{silver2016}. 
+Policy Gradient (PG)~\cite{sutton2000}, %and Deep Q-Network (DQN), commonly referred to as Q-Learning~\cite{watkins1992q}. We chose these algorithms as they are simple, mature, and adequate to solve the problem. 
+for example, updates the policy directly by differentiating the aggregate reward $\mathbb{E}$ in Equation~\ref{eq:MDP}:
+\begin{multline}
+\label{eq:policygradient}
+    \nabla_\theta J =  \\
+    %\nabla_\theta \mathbb{E}_{\tau{\raise.05ex\hbox{$\scriptstyle\mathtt{\sim}$}}\rho_{\pi(\tau)}} \left[\sum_{t}^{}r(s_t,a_t) \right] = \\
+    %\mathbb{E}_{\tau{\raise.05ex\hbox{$\scriptstyle\mathtt{\sim}$}}\rho_{\pi(\tau)}} \left[(\sum_{t}^{}\nabla_\theta log\pi_\theta(a_t|s_t))(\sum_{t}^{}r(s_t,a_t))\right] \approx \\
+    \frac{1}{N}\sum_{i=1}^{N} \left[ (\sum_{t}^{}\nabla_\theta log\pi_\theta(a_{i,t}|s_{i,t}))(\sum_{t}^{}r(s_{i,t},a_{i,t})) \right]
+\end{multline}
+and updating the network parameters (weights) in the direction of the gradient:
+\begin{equation}
+    \theta \leftarrow \theta+\alpha\nabla_\theta J,
+\end{equation}
+%where $\alpha$ represents the learning rate.
+Note that PG is an on-policy method in that it uses decisions made directly by the current policy to compute the new policy.
+
+Over the past couple of years, a plethora of new deep RL techniques have been proposed~\cite{mnih2016asynchronous,ross2011}. In this paper, we mainly focus on Proximal Policy Optimization (PPO)~\cite{schulman2017proximal}, 
+Asynchronous Advantage Actor-critic (A3C)~\cite{mnih2016asynchronous}.
+%In contrast, DQN is an off-policy method which takes partially random actions to explore the state space. The DQN's goal is to find which actions will maximize future rewards from a given state. To do so DQN computes a $Q$-function, $Q(s_i, a_i)$ that predicts the future overall reward of taking action $a_i$ from state $s_i$. To compute this $Q$-function, DQN uses a neural network paramterized by weights $\phi$). More formally:
+
+% \begin{equation}
+% \label{eq:Dqn}
+%     y_i = r(s_i,a_i) + \argmaxA_{a'_i}Q_\phi(s'_i,a'_i)\\
+% \end{equation}
+% \begin{equation}
+%     \phi \leftarrow \argminA_{\phi}\sum_i||Q_\phi(s_i,a_i)-y_i||^2,
+% \end{equation}
+% \noindent
+% where $y_i$ is the target result, $a_i$ and $s_i$ are the current action and state respectively, $a'_i$ and $s'_i$ are the next action and state respectively, and $r(s_i,a_i)$ is the reward for taking action $a_i$ at state $s_i$. On top of that, the policy is basically defined as follow:
+% \begin{equation}
+%     \pi_\theta(a_t|s_t) =
+%     \begin{cases}
+%     1 & \text{if } a_t =\argmaxA_{a_t}Q_\phi(s'_t,a'_t)\\
+%     0              & \text{otherwise}
+% \end{cases}
+% \end{equation}
+%Unlike other standard policy gradient methods that update the gradient per data sample,
+\textbf{PPO} is a variant of PG that enables multiple epochs of minibatch updates to improve the sample complexity.
+Vanilla PG performs one gradient update per data sample while PPO uses a novel surrogate objective function to enable multiple epochs of minibatch updates. It alternates between sampling data through interaction with the environment and optimizing the surrogate objective function using stochastic gradient ascent.
+It performs updates that maximizes the reward function while ensuring the deviation from the previous policy is small by using a surrogate objective function. The loss function of PPO is defined as:%Equation~\ref{eq:ppo}.
+\begin{equation}\label{eq:ppo}
+%\vspace{-1cm}
+L^{CLIP}(\theta) =
+\hat{E}_{t}[ min( r_t(\theta)\hat{A}_t, clip(r_t(\theta), 1 - \varepsilon, 1 + \varepsilon) \hat{A}_t )]
+\end{equation}
+where $r_t(\theta)$ is defined as a probability ratio 
+$\frac{\pi_\theta(\mathbf{a_t} | \mathbf{s_t})}{\pi_{\theta_{old}}(\mathbf{a_t} | \mathbf{s_t})}$
+so $r(\theta_{old}) = 1$. This term penalizes policy update that move $r_t(\theta)$ from $r(\theta_{old})$.
+$\hat{A}_t$ denotes the estimated advantage that approximates how good $\mathbf{a_t}$ is compared to the average. 
+The second term in the $min$ function acts as a disincentive for moving $r_t$ outside of $[1-\varepsilon, 1+\varepsilon]$ where $\varepsilon$ is a hyperparameter.
+
+\textbf{A3C} uses an actor (usually a neural network) that interacts with the critic, which is another network that evaluates the action by computing the value function. The critic tells the actor how good its action was and how it should adjust. The update performed by the algorithm
+can be seen as $\nabla_\theta log\pi_\theta(a_{i,t}|s_{i,t})\hat{A}_t$.
+
+
+\subsection{Evolutionary Algorithms}
+Evolutionary algorithms are another technique that can be used to search for the best compiler pass ordering.  
+It contains a family of population-based meta-heuristic optimization algorithms inspired by natural selection. The main idea of these algorithms is to sample a population of solutions and use the good ones to direct the distribution of future generations. Two commonly used Evolutionary Algorithms are Genetic Algorithms (GA)~\cite{goldberg2006genetic} and Evolution Strategies (ES)~\cite{conti2018improving}.
+
+\textbf{GA} generally requires a genetic representation of the search space where the solutions are coded as integer vectors.  The algorithm starts with a pool of candidates, then iteratively evolves the pool to include solutions with higher fitness by the three following strategies: selection, crossover, and mutation. Selection keeps a subset of solutions with the highest fitness values. These selected solutions act as parents for the next generation. Crossover merges pairs from the parent solutions to produce new offsprings. Mutation perturbs the offspring solutions with a low probability. The process repeats until a solution that reaches the goal fitness is found or after a certain number of generations. 
+
+\textbf{ES} works similarly to GA. However, the solutions are coded as real numbers in ES. In addition, ES is self-adapting. The hyperparameters, such as the step size or the mutation probability, are different for different solutions. They are encoded in each solution,  so good settings get to the next generation with good solutions. Recent work~\cite{salimans2017evolution} has used ES to update policy weights for RL and showed it is a good alternative for gradient-based methods. 
